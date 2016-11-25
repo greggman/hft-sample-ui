@@ -254,13 +254,6 @@ define([
       settingsElement.style.display = "none";
     });
 
-//    $("hft-mainmenu").addEventListener('click', function() {
-//      window.location.href = "/";
-//    }, false);
-//    $("hft-reload").addEventListener('click', function() {
-//      window.location.reload();
-//    });
-
     // This is not currently needed. The idea
     // was to show something else like "connecting"
     // until the user connected but that's mostly
