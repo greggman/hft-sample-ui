@@ -56,15 +56,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [
 	    __webpack_require__(1),
-	    __webpack_require__(5),
 	    __webpack_require__(13),
-	    __webpack_require__(14),
-	    __webpack_require__(9),
-	    __webpack_require__(10),
+	    __webpack_require__(5),
 	    __webpack_require__(15),
 	    __webpack_require__(16),
+	    __webpack_require__(9),
+	    __webpack_require__(10),
+	    __webpack_require__(17),
+	    __webpack_require__(18),
 	  ], __WEBPACK_AMD_DEFINE_RESULT__ = function (
 	    commonUI,
+	    PlayerNameManager,
 	    dialog,
 	    DPad,
 	    input,
@@ -74,6 +76,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    touch) {
 	  return {
 	    commonUI: commonUI,
+	    PlayerNameManager: PlayerNameManager,
 	    dialog: dialog,
 	    DPad: DPad,
 	    input: input,
@@ -2366,6 +2369,210 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	"use strict";
 
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [
+	  __webpack_require__(14),
+	], __WEBPACK_AMD_DEFINE_RESULT__ = function(
+	  EventEmitter
+	) {
+
+	  class PlayerNameManager extends EventEmitter {
+	    constructor(netPlayer) {
+	      super();
+	      this._netPlayer = netPlayer;
+	      this._name = "";
+	      this._busy = false;
+
+	      this._handleSetName = this._handleSetName.bind(this);
+	      this._handleBusy = this._handleBusy.bind(this);
+
+	      netPlayer.on('_hft_setname_', this._handleSetName);
+	      netPlayer.on('_hft_busy_', this._handleBusy);
+	    }
+
+	    _handleSetName(data) {
+	      if (data.name && data.name !== this._name) {
+	        this._name = data.name;
+	        this.emit('setName', this._name);
+	      }
+	    }
+
+	    _handleBusy(data) {
+	      if (data.busy !== this._busy) {
+	        this._busy = data.busy;
+	        this.emit('busy', this._busy);
+	      }
+	    }
+
+	    get name() {
+	      return this._name;
+	    }
+
+	    get busy() {
+	      return this._busy;
+	    }
+	  }
+
+	  return PlayerNameManager;
+
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ },
+/* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
+	 * Copyright 2014, Gregg Tavares.
+	 * All rights reserved.
+	 *
+	 * Redistribution and use in source and binary forms, with or without
+	 * modification, are permitted provided that the following conditions are
+	 * met:
+	 *
+	 *     * Redistributions of source code must retain the above copyright
+	 * notice, this list of conditions and the following disclaimer.
+	 *     * Redistributions in binary form must reproduce the above
+	 * copyright notice, this list of conditions and the following disclaimer
+	 * in the documentation and/or other materials provided with the
+	 * distribution.
+	 *     * Neither the name of Gregg Tavares. nor the names of its
+	 * contributors may be used to endorse or promote products derived from
+	 * this software without specific prior written permission.
+	 *
+	 * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+	 * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+	 * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+	 * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+	 * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+	 * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+	 * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+	 * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+	 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+	 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+	"use strict";
+
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function() {
+
+	  /**
+	   * This is similar to node's EventEmitter.
+	   * The major difference is calling `addEventListner`
+	   * or `removeEventListener` with `null` or `undefined`
+	   * will remove all listeners for that event.
+	   */
+	  var EventEmitter = function() {
+	    var events = {};
+	    var maxListeners = 10;
+
+	    var setMaxListeners = function(max) {
+	      maxListeners = max;
+	    };
+
+	    var addEventListener = function(name, handler) {
+	      if (!handler) {
+	        delete events[name];
+	        return;
+	      }
+
+	      var handlers = events[name];
+	      if (!handlers) {
+	        handlers = [];
+	        events[name] = handlers;
+	      }
+	      handlers.push(handler);
+	      if (handlers.length > maxListeners) {
+	        console.warn("More than " + maxListeners + " added to event " + name);
+	      }
+	    };
+
+	    var removeEventListener = function(name, handler) {
+	      if (!handler) {
+	        delete events[name];
+	        return;
+	      }
+
+	      var handlers = events[name];
+	      if (handlers) {
+	        var ndx = handlers.indexOf(handler);
+	        if (ndx >= 0) {
+	          handlers.splice(ndx, 1);
+	        }
+	      }
+	    };
+
+	    var removeAllEventListeners = function() {
+	      events = {};
+	    };
+
+	    var emit = function(name) {
+	      var handlers = events[name];
+	      if (handlers) {
+	        var args = Array.prototype.slice.call(arguments, 1);
+	        handlers.forEach(function(handler) {
+	          handler.apply(this, args);
+	        });
+	      }
+	    };
+
+	    var listeners = function(name) {
+	      return events[name];
+	    };
+
+	    this.on = addEventListener;
+	    this.addEventListener = addEventListener;
+	    this.removeEventListener = removeEventListener;
+	    this.removeAllEventListeners = removeAllEventListeners;
+	    this.addListener = addEventListener;
+	    this.removeListener = removeEventListener;
+	    this.removeAllListeners = removeAllEventListeners;
+	    this.emit = emit;
+	    this.listeners = listeners;
+	    this.setMaxListeners = setMaxListeners;
+	  };
+
+	  return EventEmitter;
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+
+/***/ },
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
+	 * Copyright 2014, Gregg Tavares.
+	 * All rights reserved.
+	 *
+	 * Redistribution and use in source and binary forms, with or without
+	 * modification, are permitted provided that the following conditions are
+	 * met:
+	 *
+	 *     * Redistributions of source code must retain the above copyright
+	 * notice, this list of conditions and the following disclaimer.
+	 *     * Redistributions in binary form must reproduce the above
+	 * copyright notice, this list of conditions and the following disclaimer
+	 * in the documentation and/or other materials provided with the
+	 * distribution.
+	 *     * Neither the name of Gregg Tavares. nor the names of its
+	 * contributors may be used to endorse or promote products derived from
+	 * this software without specific prior written permission.
+	 *
+	 * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+	 * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+	 * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+	 * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+	 * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+	 * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+	 * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+	 * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+	 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+	 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+	"use strict";
+
 	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [ ], __WEBPACK_AMD_DEFINE_RESULT__ = function() {
 
 	  var drawCircle = function(ctx, x, y, radius, flags) {
@@ -2497,7 +2704,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 14 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
@@ -2965,7 +3172,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 15 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/*
@@ -3202,7 +3409,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 16 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
@@ -3242,8 +3449,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 * @module Touch
 	 */
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [ __webpack_require__(17),
-	    __webpack_require__(14),
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [ __webpack_require__(19),
+	    __webpack_require__(16),
 	    __webpack_require__(9),
 	  ], __WEBPACK_AMD_DEFINE_RESULT__ = function(pep, Input, Misc) {
 
@@ -3703,7 +3910,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 17 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*!
