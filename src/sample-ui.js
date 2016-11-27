@@ -1,5 +1,6 @@
 define([
     './hft/scripts/commonui',
+    './hft/scripts/player-name-manager',
     './hft/scripts/misc/dialog',
     './hft/scripts/misc/dpad',
     './hft/scripts/misc/input',
@@ -9,6 +10,7 @@ define([
     './hft/scripts/misc/touch',
   ], function (
     commonUI,
+    PlayerNameManager,
     dialog,
     DPad,
     input,
@@ -18,6 +20,7 @@ define([
     touch) {
   return {
     commonUI: commonUI,
+    PlayerNameManager: PlayerNameManager,
     dialog: dialog,
     DPad: DPad,
     input: input,
